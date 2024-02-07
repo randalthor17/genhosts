@@ -1,0 +1,22 @@
+# preferences; where to save downloaded hosts files, where to look for config files, etc
+[prefs]
+# location of downloaded hosts files
+hosts-save-dir = '/etc/hosts.d'
+# location of config
+config-file = '/etc/genhosts/config.toml'
+
+# base hosts file; stevenblack's unified hosts by default
+[base]
+name = "StevenBlack's Unified Hosts"
+url = "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
+
+# extra hosts (optional)
+# extras should be added like the following:
+# [[extra]]
+# name = "name"
+# url = "url"
+
+[[extra]]
+name = "d3ward's hosts"
+url = "https://raw.githubusercontent.com/d3ward/toolz/master/src/d3host.txt"
+
