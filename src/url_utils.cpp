@@ -1,11 +1,11 @@
-#include "fetch_url.hpp"
+#include "url_utils.hpp"
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream) {
   size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
   return written;
 }
 
-int url2file(std::string url, std::string filename) {
+int download_file(std::string url, std::string filename) {
   CURL *curl_handle;
   FILE *pagefile;
   curl_global_init(CURL_GLOBAL_ALL);
