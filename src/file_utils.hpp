@@ -24,3 +24,5 @@ int rm_r(std::string dirname);
 int sed(std::string filename, std::string pattern, std::string replace_pattern);
 
 int cat(std::string to, std::vector<std::string> files);
+
+int remove_dup_lines(std::string filename);
