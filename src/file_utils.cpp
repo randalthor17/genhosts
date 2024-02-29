@@ -149,10 +149,14 @@ int cat(std::string to, std::vector<std::string> files) {
   for (std::string file : files) {
     std::ifstream input_file(std::filesystem::absolute(file));
     if (input_file.is_open() && output_file.is_open()) {
-      output_file << "\n#\t--------\n#\t" << file
-                  << " starts here\t\n#\t--------\n"
-                  << input_file.rdbuf() << "\n#\t--------\n#\t" << file
-                  << " ends here\t\n#\t--------\n";
+      output_file << std::endl
+                  << "#\t--------" << std::endl
+                  << "#\t" << file << " starts here\t" << std::endl
+                  << "#\t--------" << std::endl
+                  << input_file.rdbuf() << std::endl
+                  << "#\t--------" << std::endl
+                  << "#\t" << file << " ends here\t" << std::endl
+                  << "#\t--------" << std::endl;
     } else {
       std::cout << "Error opening file" << std::endl;
       return 1;
@@ -167,9 +171,8 @@ static char first_non_space_char(std::string line) {
   if (line.front() == 32) { /* 32 is ascii for SPACE */
     line.erase(0);
     first_non_space_char(line);
-  } else {
-    return line.front();
   }
+  return line.front();
 }
 
 static bool is_comment(std::string line) {

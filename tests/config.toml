@@ -1,9 +1,7 @@
 # preferences; where to save downloaded hosts files, where to look for config files, etc
 [prefs]
 # location of downloaded hosts files
-hosts-save-dir = '/etc/hosts.d'
-# location of config
-config-file = '/etc/genhosts/config.toml'
+hosts_save_dir = '/etc/hosts.d'
 
 # base hosts file; stevenblack's unified hosts by default
 [base]
