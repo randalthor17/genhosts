@@ -13,6 +13,12 @@ bool file_exists(std::string filepath);
 
 bool dir_exists(std::string dirpath);
 
+std::pmr::vector<std::string> ls(std::string dirpath);
+
+std::pmr::vector<std::string> ls_files(std::string dirpath);
+
+std::pmr::vector<std::string> ls_dirs(std::string dirpath);
+
 int cp(std::string from, std::string to);
 
 int mv(std::string from, std::string to);
@@ -23,6 +29,6 @@ int rm_r(std::string dirname);
 
 int sed(std::string filename, std::string pattern, std::string replace_pattern);
 
-int cat(std::string to, std::vector<std::string> files);
+int cat(std::string to, std::pmr::vector<std::string> files);
 
 int remove_dup_lines(std::string filename);

@@ -79,20 +79,3 @@ config_obj::config_obj(std::string filename) {
     extra = gen_extra(config);
   }
 };
-
-/* int main(int argc, char *argv[]) { */
-/*   if (argc == 2) { */
-/*     url_list test((std::string(argv[1]))); */
-/*     std::cout << "Prefs" << std::endl */
-/*               << test.prefs.hosts_save_dir << std::endl */
-/*               << "Base" << test.base.name << " " << test.base.url <<
- * std::endl; */
-/*     if (test.extra.has_value()) { */
-/*       for (url_holder extra_unit : test.extra.value()) { */
-/*         std::cout << extra_unit.name << " " << extra_unit.url << std::endl;
- */
-/*       } */
-/*     } */
-/*   } */
-/*   return 0; */
-/* } */

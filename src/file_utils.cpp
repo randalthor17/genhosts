@@ -1,4 +1,5 @@
 #include "file_utils.hpp"
+#include "string_utils.hpp"
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -9,12 +10,6 @@
 #include <system_error>
 #include <unordered_map>
 #include <vector>
-
-#if defined(_WIN32) || defined(__CYGWIN__)
-#define DIR_SEPARATOR "\\"
-#else
-#define DIR_SEPARATOR "/"
-#endif
 
 int mkdir_p(std::string path) {
   try {
@@ -46,6 +41,37 @@ bool dir_exists(std::string dirpath) {
   } else {
     return false;
   }
+}
+
+std::pmr::vector<std::string> ls(std::string dirpath) {
+  std::pmr::vector<std::string> ls_list;
+  for (const auto &entry : std::filesystem::directory_iterator(
+           std::filesystem::absolute(dirpath))) {
+    ls_list.emplace_back(entry.path().string());
+  }
+  return ls_list;
+}
+
+std::pmr::vector<std::string> ls_files(std::string dirpath) {
+  std::pmr::vector<std::string> ls_list = ls(dirpath);
+  std::pmr::vector<std::string> ls_files_list;
+  for (std::string name : ls_list) {
+    if (!dir_exists(name)) {
+      ls_files_list.emplace_back(name);
+    }
+  }
+  return ls_files_list;
+}
+
+std::pmr::vector<std::string> ls_dirs(std::string dirpath) {
+  std::pmr::vector<std::string> ls_list = ls(dirpath);
+  std::pmr::vector<std::string> ls_dirs_list;
+  for (std::string name : ls_list) {
+    if (!file_exists(name)) {
+      ls_dirs_list.emplace_back(name);
+    }
+  }
+  return ls_dirs_list;
 }
 
 int cp(std::string from, std::string to) {
@@ -113,13 +139,8 @@ int rm_r(std::string dirname) {
 int sed(std::string filename, std::string pattern,
         std::string replace_pattern) {
   std::ifstream input_file(std::filesystem::absolute(filename));
-  std::string tmp_file =
-      std::filesystem::absolute(std::filesystem::path(filename))
-          .parent_path()
-          .string()
-          .append(DIR_SEPARATOR)
-          .append(std::filesystem::path(filename).filename())
-          .append(".tmp");
+  std::string tmp_file = file_abs_name_from_dirname(
+      filename, std::filesystem::path(filename).parent_path().append(".tmp"));
   std::ofstream output_file(tmp_file);
   std::string line;
   if (input_file.is_open() && output_file.is_open()) {
@@ -144,7 +165,7 @@ int sed(std::string filename, std::string pattern,
   return 0;
 }
 
-int cat(std::string to, std::vector<std::string> files) {
+int cat(std::string to, std::pmr::vector<std::string> files) {
   std::ofstream output_file(std::filesystem::absolute(to));
   for (std::string file : files) {
     std::ifstream input_file(std::filesystem::absolute(file));
@@ -167,27 +188,14 @@ int cat(std::string to, std::vector<std::string> files) {
   return 0;
 }
 
-static char first_non_space_char(std::string line) {
-  if (line.front() == 32) { /* 32 is ascii for SPACE */
-    line.erase(0);
-    first_non_space_char(line);
-  }
-  return line.front();
-}
-
-static bool is_comment(std::string line) {
+static inline bool is_comment(std::string line) {
   return first_non_space_char(line) == 35; /* 35 is ascii for # */
 }
 
 int remove_dup_lines(std::string filename) {
   std::ifstream input_file(std::filesystem::absolute(filename));
-  std::string tmp_file =
-      std::filesystem::absolute(std::filesystem::path(filename))
-          .parent_path()
-          .string()
-          .append(DIR_SEPARATOR)
-          .append(std::filesystem::path(filename).filename())
-          .append(".tmp");
+  std::string tmp_file = file_abs_name_from_dirname(
+      filename, std::filesystem::path(filename).parent_path().append(".tmp"));
   std::ofstream output_file(tmp_file);
   std::unordered_map<std::string, bool> unique_lines;
   std::string line;
