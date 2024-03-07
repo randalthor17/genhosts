@@ -4,8 +4,12 @@
 #include "url_utils.hpp"
 #include <cctype>
 #include <iostream>
+#include <regex>
 #include <string>
 #include <vector>
+
+const std::string hosts_location("/etc/hosts");
+const std::string hosts_new_location("/etc/hosts.new");
 
 std::string snakecase(std::string orig_str) {
   std::string new_str;
@@ -37,14 +41,16 @@ int download_url_holder(url_holder url, std::string dir, int priority) {
 
 std::pmr::vector<std::string> ls_files_ignore(std::string dirpath) {
   std::pmr::vector<std::string> ls_files_list = ls_files(dirpath);
-  auto file = ls_files_list.begin();
-  while (file != ls_files_list.end()) {
-    if ((file->find(".bak")) || (file->find("orig"))) {
-      file = ls_files_list.erase(file);
-    } else {
-      file++;
-    }
-  }
+  // This matches any filename that has .orig or ,bak in the end of the file
+  std::regex pattern("\\.(orig|bak|new)$");
+  // This newEnd uses a lambda to search and move any string that matches the
+  // pattern to the end of the vector, essentially removing it
+  // newEnd points to the first string that matches the pattern
+  auto new_end = std::remove_if(ls_files_list.begin(), ls_files_list.end(),
+                                [&](const std::string &file) {
+                                  return std::regex_search(file, pattern);
+                                });
+  ls_files_list.erase(new_end, ls_files_list.end());
   return ls_files_list;
 }
 
@@ -57,7 +63,18 @@ int main(int argc, char *argv[]) {
       download_url_holder(extra_url, hosts_save_dir, 99);
     }
   }
-  std::pmr::vector<std::string> hosts_list = ls_files(hosts_save_dir);
-  cat(std::string("/etc/hosts"), hosts_list);
+  std::pmr::vector<std::string> hosts_list = ls_files_ignore(hosts_save_dir);
+  std::cout << "Removing old " << hosts_new_location << "..." << std::endl;
+  rm(hosts_new_location);
+  std::cout << "Concatenating the hosts files to " << hosts_new_location
+            << "..." << std::endl;
+  cat(hosts_new_location, hosts_list);
+  std::cout << "Removing duplicate entries from " << hosts_new_location << "..."
+            << std::endl;
+  remove_dup_lines(hosts_new_location);
+  std::cout << "Moving " << hosts_new_location << " to " << hosts_location
+            << "..." << std::endl;
+  mv(hosts_new_location, hosts_location);
+  std::cout << "Done!" << std::endl;
   return 0;
 }
