@@ -4,4 +4,4 @@
 #include <unistd.h>
 
 std::string whoami();
-int is_root();
+bool is_root();

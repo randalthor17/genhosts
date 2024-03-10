@@ -1,7 +1,9 @@
 #include "argparse.hpp"
 #include "file_utils.hpp"
+#include "restore_hosts.hpp"
 #include "string_utils.hpp"
 #include "url_utils.hpp"
+#include "user_utils.hpp"
 #include <cctype>
 #include <filesystem>
 #include <iostream>
@@ -66,7 +68,6 @@ int main_not_dump_only(argparse_result result) {
   if (result.output_location.has_value()) {
     hosts_location = result.output_location.value();
   }
-  std::cout << hosts_location << std::endl;
   std::string hosts_new_location = hosts_location + ".new";
   config_obj config = result.argparse_config_obj.value();
   std::string hosts_save_dir = config.prefs.hosts_save_dir;
@@ -94,9 +95,18 @@ int main_not_dump_only(argparse_result result) {
 
 int main(int argc, char *argv[]) {
   argparse_result result = parse_args(argc, argv);
+  if (result.unrecognized_opts) {
+    return -1;
+  }
   if (!result.help_only) {
+    if (!is_root()) {
+      std::cout << "Please run the program as root!" << std::endl;
+      return -1;
+    }
     if (result.dump_only) {
       return dump_config(result.dump_location.value());
+    } else if (result.restore_only) {
+      return restore_hosts(result.restore_location.value());
     } else {
       return main_not_dump_only(result);
     }
