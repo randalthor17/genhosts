@@ -25,6 +25,7 @@ argparse_result apply_args(cxxopts::ParseResult result,
   if (result.count("help")) {
     result_return.help_only = true;
     std::cout << options.help({""}) << std::endl;
+    return result_return;
   } else {
     result_return.help_only = false;
   }
@@ -37,8 +38,7 @@ argparse_result apply_args(cxxopts::ParseResult result,
   }
   if (result.count("restore")) {
     result_return.restore_only = true;
-    result_return.restore_location =
-        result["restore_location"].as<std::string>();
+    result_return.restore_location = result["restore"].as<std::string>();
     return result_return;
   } else {
     result_return.restore_only = false;
@@ -70,9 +70,9 @@ argparse_result parse_args(int argc, char *argv[]) {
       "o,output", "Hosts output path",
       cxxopts::value<std::string>()->default_value("/etc/hosts"))(
       "s,dump-config", "Dump config to a specific path",
-      cxxopts::value<std::string>()->default_value(config_location))(
+      cxxopts::value<std::string>()->implicit_value(config_location))(
       "restore", "Restore hosts file",
-      cxxopts::value<std::string>()->default_value("/etc/hosts"))(
+      cxxopts::value<std::string>()->implicit_value("/etc/hosts"))(
       "h,help", "Print help", cxxopts::value<bool>()->default_value("false"));
   auto result = options.parse(argc, argv);
   return apply_args(result, options);

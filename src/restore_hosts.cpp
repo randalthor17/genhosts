@@ -1,5 +1,7 @@
 #include "restore_hosts.hpp"
 #include "file_utils.hpp"
+#include <iostream>
+#include <ostream>
 #include <string>
 #include <string_view>
 
@@ -16,5 +18,7 @@ constexpr std::string_view default_hosts_file = R"(
 )"sv;
 
 int restore_hosts(std::string filepath) {
+  std::cout << "Restoring default hosts file to " << filepath << "..."
+            << std::endl;
   return cat_string_view_to_file(filepath, default_hosts_file);
 }
