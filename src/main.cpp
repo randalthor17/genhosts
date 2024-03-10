@@ -1,15 +1,15 @@
+#include "argparse.hpp"
 #include "file_utils.hpp"
 #include "string_utils.hpp"
-#include "toml_utils.hpp"
 #include "url_utils.hpp"
 #include <cctype>
+#include <filesystem>
 #include <iostream>
 #include <regex>
 #include <string>
 #include <vector>
 
-const std::string hosts_location("/etc/hosts");
-const std::string hosts_new_location("/etc/hosts.new");
+std::string hosts_location = "/etc/hosts";
 
 std::string snakecase(std::string orig_str) {
   std::string new_str;
@@ -54,8 +54,21 @@ std::pmr::vector<std::string> ls_files_ignore(std::string dirpath) {
   return ls_files_list;
 }
 
-int main(int argc, char *argv[]) {
-  config_obj config;
+inline int dump_config(std::string dump_location) {
+  std::string dumpdir = std::filesystem::absolute(dump_location).parent_path();
+  if (!dir_exists(dumpdir)) {
+    mkdir_p(dumpdir);
+  }
+  return cat_string_view_to_file(dump_location, default_config_str);
+}
+
+int main_not_dump_only(argparse_result result) {
+  if (result.output_location.has_value()) {
+    hosts_location = result.output_location.value();
+  }
+  std::cout << hosts_location << std::endl;
+  std::string hosts_new_location = hosts_location + ".new";
+  config_obj config = result.argparse_config_obj.value();
   std::string hosts_save_dir = config.prefs.hosts_save_dir;
   download_url_holder(config.base, hosts_save_dir, 00);
   if (config.extra.has_value()) {
@@ -64,11 +77,11 @@ int main(int argc, char *argv[]) {
     }
   }
   std::pmr::vector<std::string> hosts_list = ls_files_ignore(hosts_save_dir);
-  std::cout << "Removing old " << hosts_new_location << "..." << std::endl;
-  rm(hosts_new_location);
+  // std::cout << "Removing old " << hosts_new_location << "..." << std::endl;
+  // rm(hosts_new_location);
   std::cout << "Concatenating the hosts files to " << hosts_new_location
             << "..." << std::endl;
-  cat(hosts_new_location, hosts_list);
+  cat_file_to_file(hosts_new_location, hosts_list);
   std::cout << "Removing duplicate entries from " << hosts_new_location << "..."
             << std::endl;
   remove_dup_lines(hosts_new_location);
@@ -77,4 +90,16 @@ int main(int argc, char *argv[]) {
   mv(hosts_new_location, hosts_location);
   std::cout << "Done!" << std::endl;
   return 0;
+}
+
+int main(int argc, char *argv[]) {
+  argparse_result result = parse_args(argc, argv);
+  if (!result.help_only) {
+    if (result.dump_only) {
+      return dump_config(result.dump_location.value());
+    } else {
+      return main_not_dump_only(result);
+    }
+    return 0;
+  }
 }

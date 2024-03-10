@@ -2,8 +2,9 @@
 #include <filesystem>
 
 char first_non_space_char(std::string line) {
-  if (line.front() == 32) { /* 32 is ascii for SPACE */
-    line.erase(0);
+  if (line.front() == 32 ||
+      line.front() == 9) { /* 32 is ascii for SPACE, and 9 is for TAB */
+    line.erase(0, 1);
     first_non_space_char(line);
   }
   return line.front();

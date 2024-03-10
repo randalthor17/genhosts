@@ -7,19 +7,6 @@
 #include <string_view>
 #include <vector>
 
-using namespace std::string_view_literals;
-
-static constexpr std::string_view default_config_str =
-    R"(# preferences; where to save downloaded hosts files, where to look for config files, etc
-[prefs]
-# location of downloaded hosts files
-hosts_save_dir = '/etc/hosts.d'
-
-# base hosts file; stevenblack's unified hosts by default
-[base]
-name = "StevenBlack's Unified Hosts"
-url = "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts")"sv;
-
 static inline toml::table set_default_config() {
   toml::table default_config = toml::parse(default_config_str);
   return default_config;
@@ -64,9 +51,14 @@ std::pmr::vector<url_holder> config_obj::gen_extra(toml::table config) {
   std::pmr::vector<url_holder> extra;
   auto toml_extra = config["extra"].as_array();
   for (auto &extra_table : *toml_extra) {
-    extra.push_back(
-        (url_holder){.name = extra_table.as_table()->get("name")->value_or(""),
-                     .url = extra_table.as_table()->get("url")->value_or("")});
+    auto extra_table_placeholder = extra_table.as_table();
+    if (!extra_table_placeholder->contains("disabled") ||
+        !extra_table_placeholder->get_as<bool>("disabled")) {
+
+      extra.push_back((url_holder){
+          .name = extra_table_placeholder->get("name")->value_or(""),
+          .url = extra_table_placeholder->get("url")->value_or("")});
+    }
   }
   return extra;
 }
