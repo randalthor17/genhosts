@@ -7,4 +7,4 @@ if not cxxopts_dep.found()
   cxxopts_proj = subproject('cxxopts')
   cxxopts_dep = cxxopts_proj.get_variable('cxxopts_dep')
 endif
-executable('genhosts', src, dependencies: [curl_dep, cxxopts_dep])
+executable('genhosts', src, dependencies: [curl_dep, cxxopts_dep], install: true)
